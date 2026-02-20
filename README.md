@@ -1,6 +1,6 @@
 # Amber24-container
 
-Dockerfiles and Singularity Definition Files (for `x86_64` and `aarch64` architectures) to build **Amber24** and **AmberTools25** with MPIch-4.1 and CUDA 12 support.
+Dockerfiles and Singularity Definition Files (for `x86_64` and `aarch64` architectures) to build **Amber24** and **AmberTools25** with MVAPIch-4.1 and CUDA 12 support.
 
 **Important:** The source code is not included in this repository because it requires signing an End User License Agreement (EULA).
 

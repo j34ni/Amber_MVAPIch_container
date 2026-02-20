@@ -1,0 +1,89 @@
+Bootstrap: docker
+From: nvidia/cuda:12.8.1-devel-ubuntu24.04
+%files
+    start.sh /opt/
+    ambertools25.tar.bz2 /opt/
+    pmemd24.tar.bz2 /opt/
+%post
+    apt-get update -y
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates csh lbzip2 tzdata wget
+    rm -rf /var/lib/apt/lists/*
+    echo "Europe/Oslo" > /etc/timezone
+    ln -snf /usr/share/zoneinfo/Europe/Oslo /etc/localtime
+    wget -q -nc --no-check-certificate -P /opt \
+        https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-aarch64.sh
+    /bin/bash /opt/Miniforge3-Linux-aarch64.sh -b -p /opt/conda
+    rm -f /opt/Miniforge3-Linux-aarch64.sh
+    export PATH=/opt/conda/bin:$PATH
+    conda config --add channels j34ni
+    conda config --append channels conda-forge
+    conda config --set channel_priority flexible
+    conda clean --index-cache -y
+    mamba install -y bison cmake esme_hdf5_mvapich_4_1 esme_netcdf-c_mvapich_4_1 \
+        esme_netcdf-fortran_mvapich_4_1 esme_pnetcdf_mvapich_4_1 flex \
+        gcc_linux-aarch64=13 gxx_linux-aarch64=13 gfortran_linux-aarch64=13 matplotlib micro \
+        mpi4py_mvapich mvapich=4.1 numpy openblas python=3.12 scipy vim zlib
+    mamba clean --all -y
+    lbzip2 -dc /opt/ambertools25.tar.bz2 | tar -x -C /opt/
+    lbzip2 -dc /opt/pmemd24.tar.bz2 | tar -x -C /opt/
+    mkdir -p /opt/ambertools25_src/build
+    cd /opt/ambertools25_src/build
+    . /opt/start.sh
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/opt/conda/amber24 \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCOMPILER=MANUAL \
+        -DCMAKE_C_COMPILER=/opt/conda/bin/aarch64-conda-linux-gnu-gcc \
+        -DCMAKE_CXX_COMPILER=/opt/conda/bin/aarch64-conda-linux-gnu-g++ \
+        -DCMAKE_Fortran_COMPILER=/opt/conda/bin/aarch64-conda-linux-gnu-gfortran \
+        -DMPI=TRUE \
+        -DCUDA=FALSE \
+        -DOPENMP=TRUE \
+        -DBLA_VENDOR=OpenBLAS \
+        -DINSTALL_TESTS=FALSE \
+        -DDOWNLOAD_MINICONDA=FALSE \
+        -DCHECK_UPDATES=FALSE \
+        -DPYTHON_EXECUTABLE=/opt/conda/bin/python \
+        -DMPI_C_COMPILER=/opt/conda/bin/mpicc \
+        -DMPI_CXX_COMPILER=/opt/conda/bin/mpicxx \
+        -DMPI_Fortran_COMPILER=/opt/conda/bin/mpif90 \
+        -DNETCDF_C_ROOT=/opt/conda \
+        -DNETCDF_FORTRAN_ROOT=/opt/conda \
+        -DPnetCDF_ROOT=/opt/conda \
+        -DHDF5_ROOT=/opt/conda \
+        ..
+    make -j$(nproc) install
+    mkdir -p /opt/pmemd24_src/build
+    cd /opt/pmemd24_src/build
+    . /opt/start.sh
+    cmake \
+        -DCMAKE_INSTALL_PREFIX=/opt/conda/amber24 \
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+        -DCOMPILER=MANUAL \
+        -DCMAKE_C_COMPILER=/opt/conda/bin/aarch64-conda-linux-gnu-gcc \
+        -DCMAKE_CXX_COMPILER=/opt/conda/bin/aarch64-conda-linux-gnu-g++ \
+        -DCMAKE_Fortran_COMPILER=/opt/conda/bin/aarch64-conda-linux-gnu-gfortran \
+        -DMPI=TRUE \
+        -DCUDA=TRUE \
+        -DOPENMP=TRUE \
+        -DPMEMD_ONLY=TRUE \
+        -DINSTALL_TESTS=FALSE \
+        -DDOWNLOAD_MINICONDA=FALSE \
+        -DCHECK_UPDATES=FALSE \
+        -DPYTHON_EXECUTABLE=/opt/conda/bin/python \
+        -DMPI_C_COMPILER=/opt/conda/bin/mpicc \
+        -DMPI_CXX_COMPILER=/opt/conda/bin/mpicxx \
+        -DMPI_Fortran_COMPILER=/opt/conda/bin/mpif90 \
+        -DNETCDF_C_ROOT=/opt/conda \
+        -DNETCDF_FORTRAN_ROOT=/opt/conda \
+        -DPnetCDF_ROOT=/opt/conda \
+        -DHDF5_ROOT=/opt/conda \
+        ..
+    make -j$(nproc) install
+    rm -rf /opt/*.tar.bz2 /opt/*_src
+%environment
+    export TZ="Europe/Oslo"
+    export PATH="/opt/conda/bin:$PATH"
+%runscript
+    exec /bin/bash "$@"

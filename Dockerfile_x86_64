@@ -1,0 +1,83 @@
+FROM nvidia/cuda:12.8.1-devel-ubuntu24.04
+
+RUN apt-get update -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates csh lbzip2 tzdata wget && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN wget -q -nc --no-check-certificate -P /opt https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh && \
+    bash /opt/Miniforge3-Linux-x86_64.sh -b -p /opt/conda && \
+    rm /opt/Miniforge3-Linux-x86_64.sh
+
+ENV TZ="Europe/Oslo"
+ENV PATH="/opt/conda/bin:$PATH"
+
+RUN conda config --add channels j34ni && \
+    conda config --append channels conda-forge && \
+    conda config --set channel_priority flexible && \
+    conda clean --index-cache -y
+
+RUN mamba install -y bison cmake esme_hdf5_mvapich_4_1 esme_netcdf-c_mvapich_4_1 esme_netcdf-fortran_mvapich_4_1 esme_pnetcdf_mvapich_4_1 flex gcc_linux-64=13 gxx_linux-64=13 gfortran_linux-64=13 matplotlib micro mpi4py mvapich=4.1 numpy openblas python=3.12 scipy vim zlib && \
+    mamba clean --all -y
+
+COPY start.sh /opt/
+COPY ambertools25.tar.bz2 /opt/
+COPY pmemd24.tar.bz2 /opt/
+
+RUN lbzip2 -dc /opt/ambertools25.tar.bz2 | tar -x -C /opt/ && \
+    lbzip2 -dc /opt/pmemd24.tar.bz2 | tar -x -C /opt/
+
+RUN mkdir -p /opt/ambertools25_src/build && \
+    cd /opt/ambertools25_src/build && \
+    . /opt/start.sh && \
+    cmake -DCMAKE_INSTALL_PREFIX=${CONDA_PREFIX}/amber24 \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DCOMPILER=MANUAL \
+          -DCMAKE_C_COMPILER=${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-gcc \
+          -DCMAKE_CXX_COMPILER=${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-g++ \
+          -DCMAKE_Fortran_COMPILER=${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-gfortran \
+          -DMPI=TRUE \
+          -DCUDA=FALSE \
+          -DOPENMP=TRUE \
+          -DBLA_VENDOR=OpenBLAS \
+          -DINSTALL_TESTS=FALSE \
+          -DDOWNLOAD_MINICONDA=FALSE \
+          -DCHECK_UPDATES=FALSE \
+          -DPYTHON_EXECUTABLE=${CONDA_PREFIX}/bin/python \
+          -DMPI_C_COMPILER=${CONDA_PREFIX}/bin/mpicc \
+          -DMPI_CXX_COMPILER=${CONDA_PREFIX}/bin/mpicxx \
+          -DMPI_Fortran_COMPILER=${CONDA_PREFIX}/bin/mpif90 \
+          -DNETCDF_C_ROOT=${CONDA_PREFIX} \
+          -DNETCDF_FORTRAN_ROOT=${CONDA_PREFIX} \
+          -DPnetCDF_ROOT=${CONDA_PREFIX} \
+          -DHDF5_ROOT=${CONDA_PREFIX} \
+          .. && \
+    make -j$(nproc) install
+
+RUN mkdir -p /opt/pmemd24_src/build && \
+    cd /opt/pmemd24_src/build && \
+    . /opt/start.sh && \
+    cmake -DCMAKE_INSTALL_PREFIX=${CONDA_PREFIX}/amber24 \
+          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+          -DCOMPILER=MANUAL \
+          -DCMAKE_C_COMPILER=${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-gcc \
+          -DCMAKE_CXX_COMPILER=${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-g++ \
+          -DCMAKE_Fortran_COMPILER=${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-gfortran \
+          -DMPI=TRUE \
+          -DCUDA=TRUE \
+          -DOPENMP=TRUE \
+          -DPMEMD_ONLY=TRUE \
+          -DINSTALL_TESTS=FALSE \
+          -DDOWNLOAD_MINICONDA=FALSE \
+          -DCHECK_UPDATES=FALSE \
+          -DPYTHON_EXECUTABLE=${CONDA_PREFIX}/bin/python \
+          -DMPI_C_COMPILER=${CONDA_PREFIX}/bin/mpicc \
+          -DMPI_CXX_COMPILER=${CONDA_PREFIX}/bin/mpicxx \
+          -DMPI_Fortran_COMPILER=${CONDA_PREFIX}/bin/mpif90 \
+          -DNETCDF_C_ROOT=${CONDA_PREFIX} \
+          -DNETCDF_FORTRAN_ROOT=${CONDA_PREFIX} \
+          -DPnetCDF_ROOT=${CONDA_PREFIX} \
+          -DHDF5_ROOT=${CONDA_PREFIX} \
+          .. && \
+    make -j$(nproc) install
+
+RUN rm -rf /opt/*.tar.bz2 /opt/*_src

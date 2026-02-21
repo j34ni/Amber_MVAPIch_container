@@ -56,3 +56,6 @@ Note: CPU runs use 32 MPI processes; GPU runs use a single GPU.
 
 These results confirm that the container produces correct physical behavior and excellent performance on both architectures, with outstanding acceleration on Grace Hopper GPUs.
 
+Also note how the Neoverse-V2 outperforms the Intel Xeon and AMD EPYC Turin.
+
+

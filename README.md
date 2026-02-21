@@ -29,6 +29,7 @@ Benchmarks were run on:
   - NVIDIA A100 GPUs (single GPU)
 - Olivia HPC
   - AMD EPYC Turin CPUs (32 MPI processes)
+  - Neoverse-V2 CPUs (32 MPI processes)
   - NVIDIA Grace Hopper GPUs (single GPU)
 
 using a standard Amber benchmark suite (https://www.hecbiosim.ac.uk/file-store/benchmark-suite/amber.tar.xz) `20k-atoms` and `61k-atoms` examples.

@@ -1,3 +1,6 @@
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18744113.svg)](https://doi.org/10.5281/zenodo.18744113)
+
 # Amber24-container
 
 Recipes for Docker and Singularity/Apptainer (for `x86_64` and `aarch64` architectures) to build **Amber24** and **AmberTools25** with MVAPIch-4.1 and CUDA 12 support.
@@ -57,5 +60,3 @@ Note: CPU runs use 32 MPI processes; GPU runs use a single GPU.
 These results confirm that the container produces correct physical behavior and excellent performance on both architectures, with outstanding acceleration on Grace Hopper GPUs.
 
 Also note how the Neoverse-V2 outperforms the Intel Xeon and AMD EPYC Turin.
-
-

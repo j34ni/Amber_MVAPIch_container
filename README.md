@@ -31,16 +31,14 @@ In a Slurm script the execution command will be something like:
 ```
 srun -n $SLURM_NTASKS --mpi=pmi2 apptainer exec --bind $PWD:/opt/uio amber24.sif  bash -c "cd /opt/uio/amber/20k-atoms && source /opt/start.sh && source \$AMBERHOME/amber.sh && pmemd.MPI -O -i benchmark.in -o benchmark_cpu.out -p benchmark.top -c benchmark.rst -r benchmark_cpu.rst -x benchmark_cpu.nc -inf benchmark_cpu.inf"
 ```
-for `pmemd.MPI` (for the HPC CPU partition)
-
-or:
+for `pmemd.MPI` (for the CPU version), or
 
 ```
 srun -n $SLURM_NTASKS --mpi=pmi2 apptainer exec --nv --bind $PWD:/opt/uio amber24_aarch64.sif  bash -c "cd /opt/uio/amber/20k-atoms && source /opt/start.sh && source \$AMBERHOME/amber.sh && pmemd.cuda -O -i benchmark.in -o benchmark_olivia_gpu.out -p benchmark.top -c benchmark.rst -r benchmark_olivia_gpu.rst -x benchmark_olivia_gpu.nc -inf benchmark_olivia_gpu.inf"
 ```
-for `pmemd.cuda` (this example is for a HPC GPU partition).
+for `pmemd.cuda` (for the GPU version).
 
-Remember to **bind** the folder containing the data (`$PWD` on the host, and in this example `opt/uio` in the container) and to use **`--nv`** for the GPU.
+Remember to **bind** the folder containing the data (in this example `$PWD` on the host, which becomes `/opt/uio` inside the container) and to use **`--nv`** for the GPU.
 
 The container comes with everything it needs, therefore it is not necessary to load any module on the host.
 

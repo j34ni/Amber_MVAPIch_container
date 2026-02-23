@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: Amber24 container recipes
+message: "If you use this software, please cite it using the metadata below."
+authors:
+  - family-names: Iaquinta
+    given-names: Jean
+doi: 10.5281/zenodo.18744113
+version: 1.0.0
+date-released: 2026-02-23
+url: "https://github.com/j34ni/Amber_MVAPIch_container"

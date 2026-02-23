@@ -12,7 +12,7 @@ Recipes for Docker and Singularity/Apptainer (for `x86_64` and `aarch64` archite
 1. Go to the official Amber website: https://ambermd.org/GetAmber.php
 2. Download the following files (non-commercial use):
    - `pmemd24.tar.bz2`
-   - `AmberTools24.tar.bz2`
+   - `AmberTools25.tar.bz2`
 3. Place both files in the same directory as the relevant Dockerfile / definition file and `start.sh`
 4. Build the container:
 
